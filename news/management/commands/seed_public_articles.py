@@ -407,11 +407,23 @@ class Command(BaseCommand):
         return author
 
     def _assign_image(self, article: Article, index: int, seed: str, force: bool = False) -> None:
-        # Packaged static sample (served by WhiteNoise /collectstatic — reliable on PA)
+        samples_dir = Path(settings.BASE_DIR) / 'static' / 'img' / 'samples'
+        samples_dir.mkdir(parents=True, exist_ok=True)
+        path = samples_dir / f'{article.slug}.jpg'
+
+        # Prefer real packaged photos already in the repo (not blue placeholders)
+        if path.exists() and path.stat().st_size >= 50000:
+            article.hero_image.save(
+                f'sample-{article.slug[:50]}.jpg',
+                ContentFile(path.read_bytes()),
+                save=True,
+            )
+            article.hero_image_caption = 'Photo illustration'
+            article.save(update_fields=['hero_image_caption'])
+            return
+
         self._write_static_sample(article, index)
-        # Also store under MEDIA for local/admin previews
         assign_hero_image(article, index=index, force=True)
-        # Optionally replace media file with a stock photo when the network allows it
         self._download_stock_image(article, seed)
 
     def _write_static_sample(self, article: Article, index: int) -> None:
