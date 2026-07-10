@@ -15,6 +15,7 @@ urlpatterns = [
     path('category/<slug:slug>/', views.CategoryNewsView.as_view(), name='category'),
     path('tag/<slug:slug>/', views.TagNewsView.as_view(), name='tag'),
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
+    path('sample-images/<slug:slug>.jpg', views.sample_hero_image, name='sample_image'),
     path('create/', views.ArticleCreateView.as_view(), name='article_create'),
     path('edit/<int:pk>/', views.ArticleUpdateView.as_view(), name='article_edit'),
 ]

@@ -153,15 +153,21 @@ class Article(models.Model):
         """
         Public URL for the article image.
 
-        Prefers packaged static samples (reliable on PythonAnywhere via WhiteNoise),
-        then falls back to uploaded media files.
+        Uses a Django-served sample image path when a packaged file exists
+        (works on PythonAnywhere without static/media mapping), then media uploads.
         """
-        from django.contrib.staticfiles.finders import find
-        from django.templatetags.static import static
+        from pathlib import Path
 
-        sample_name = f'img/samples/{self.slug}.jpg'
-        if find(sample_name):
-            return static(sample_name)
+        from django.conf import settings
+
+        sample_name = f'{self.slug}.jpg'
+        sample_paths = [
+            Path(settings.BASE_DIR) / 'static' / 'img' / 'samples' / sample_name,
+            Path(settings.STATIC_ROOT) / 'img' / 'samples' / sample_name if settings.STATIC_ROOT else None,
+        ]
+        if any(path and path.is_file() for path in sample_paths):
+            return reverse('news:sample_image', kwargs={'slug': self.slug})
+
         if self.hero_image:
             try:
                 return self.hero_image.url

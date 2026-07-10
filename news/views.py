@@ -1,12 +1,15 @@
 """News public and editorial views."""
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, View
 
 from advertisements.services import AdService
@@ -199,3 +202,21 @@ class ShareArticleView(View):
         article = get_object_or_404(Article, slug=slug)
         Article.objects.filter(pk=article.pk).update(share_count=article.share_count + 1)
         return JsonResponse({'share_count': article.share_count + 1})
+
+
+@require_GET
+def sample_hero_image(request, slug):
+    """
+    Serve packaged sample hero images directly from the project tree.
+
+    This avoids PythonAnywhere static-mapping / collectstatic issues for demos.
+    """
+    safe_slug = Path(slug).name  # prevent path traversal
+    candidates = [
+        Path(settings.BASE_DIR) / 'static' / 'img' / 'samples' / f'{safe_slug}.jpg',
+        Path(settings.STATIC_ROOT) / 'img' / 'samples' / f'{safe_slug}.jpg',
+    ]
+    for path in candidates:
+        if path.is_file():
+            return FileResponse(path.open('rb'), content_type='image/jpeg')
+    raise Http404('Sample image not found')
