@@ -211,12 +211,22 @@ def sample_hero_image(request, slug):
 
     This avoids PythonAnywhere static-mapping / collectstatic issues for demos.
     """
-    safe_slug = Path(slug).name  # prevent path traversal
+    safe_slug = Path(str(slug)).name.replace('..', '')
+    filename = f'{safe_slug}.jpg'
     candidates = [
-        Path(settings.BASE_DIR) / 'static' / 'img' / 'samples' / f'{safe_slug}.jpg',
-        Path(settings.STATIC_ROOT) / 'img' / 'samples' / f'{safe_slug}.jpg',
+        Path(settings.BASE_DIR) / 'static' / 'img' / 'samples' / filename,
+        Path(settings.BASE_DIR) / 'staticfiles' / 'img' / 'samples' / filename,
     ]
+    if settings.STATIC_ROOT:
+        candidates.append(Path(settings.STATIC_ROOT) / 'img' / 'samples' / filename)
+    # Common PythonAnywhere layout fallback
+    candidates.append(Path.home() / 'News' / 'static' / 'img' / 'samples' / filename)
+
     for path in candidates:
-        if path.is_file():
-            return FileResponse(path.open('rb'), content_type='image/jpeg')
-    raise Http404('Sample image not found')
+        try:
+            resolved = path.resolve()
+        except OSError:
+            continue
+        if resolved.is_file():
+            return FileResponse(resolved.open('rb'), content_type='image/jpeg')
+    raise Http404(f'Sample image not found for {safe_slug}')
