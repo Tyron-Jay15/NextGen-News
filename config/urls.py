@@ -40,11 +40,23 @@ urlpatterns = [
     ),
 ]
 
-# SERVE_MEDIA: PythonAnywhere fallback when /media/ is not mapped in the Web tab
-if settings.DEBUG or getattr(settings, 'SERVE_MEDIA', False):
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve uploaded media in production when SERVE_MEDIA=True (PythonAnywhere).
+# NOTE: django.conf.urls.static.static() is a no-op when DEBUG=False, so we
+# register the view ourselves for hosting platforms without a separate media CDN.
 if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+elif getattr(settings, 'SERVE_MEDIA', False):
+    from django.urls import re_path
+    from django.views.static import serve
+
+    urlpatterns += [
+        re_path(
+            r'^media/(?P<path>.*)$',
+            serve,
+            {'document_root': settings.MEDIA_ROOT},
+        ),
+    ]
 
 admin.site.site_header = 'NextGen News Administration'
 admin.site.site_title = 'NextGen News Admin'

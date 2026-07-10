@@ -405,22 +405,25 @@ class Command(BaseCommand):
         return author
 
     def _assign_image(self, article: Article, index: int, seed: str, force: bool = False) -> None:
-        if self._download_stock_image(article, seed):
-            return
-        assign_hero_image(article, index=index, force=True if force or not article.hero_image else force)
+        # Always generate a local high-res image first (works on free PA with no outbound HTTP).
+        assign_hero_image(article, index=index, force=True)
+        # Optionally replace with a stock photo when the network allows it.
+        self._download_stock_image(article, seed)
 
     def _download_stock_image(self, article: Article, seed: str) -> bool:
-        """Try a high-res public placeholder photo; fall back silently if blocked."""
+        """Try a high-res public photo; ignore failures on locked-down hosts."""
         url = f'https://picsum.photos/seed/{seed}/1920/1080'
         try:
-            response = requests.get(url, timeout=20, allow_redirects=True)
+            response = requests.get(url, timeout=12, allow_redirects=True)
             response.raise_for_status()
+            content_type = response.headers.get('Content-Type', '')
+            if 'image' not in content_type and not response.content.startswith(b'\xff\xd8'):
+                return False
             optimized = optimize_image_bytes(response.content, min_width=900)
-            payload = optimized or response.content
-            if len(payload) < 8000:
+            if not optimized:
                 return False
             filename = f'sample-{article.slug[:50]}.jpg'
-            article.hero_image.save(filename, ContentFile(payload), save=True)
+            article.hero_image.save(filename, ContentFile(optimized), save=True)
             article.hero_image_caption = 'Sample photo for demonstration'
             article.save(update_fields=['hero_image_caption'])
             return True

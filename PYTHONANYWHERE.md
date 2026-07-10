@@ -117,7 +117,18 @@ Ensure the project `.env` is in `project_home` so `python-decouple` can read it.
 | `/static/` | `/home/yourusername/News/staticfiles` |
 | `/media/` | `/home/yourusername/News/media` |
 
-Then click **Reload**.
+`SERVE_MEDIA=True` in `.env` also lets Django serve `/media/` directly (needed if the
+Web-tab mapping is missing). After changing code or `.env`, always click **Reload**.
+
+If articles show but images do not:
+
+```bash
+cd ~/News && source venv/bin/activate
+python manage.py seed_public_articles --force
+ls media/articles/hero | head
+```
+
+Then confirm `/media/` is mapped (or `SERVE_MEDIA=True`) and **Reload**.
 
 ## 5. Scheduled news scrape
 
