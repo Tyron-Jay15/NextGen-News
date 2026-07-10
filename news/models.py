@@ -149,6 +149,31 @@ class Article(models.Model):
         return reverse('news:article_detail', kwargs={'slug': self.slug})
 
     @property
+    def hero_url(self) -> str:
+        """
+        Public URL for the article image.
+
+        Prefers packaged static samples (reliable on PythonAnywhere via WhiteNoise),
+        then falls back to uploaded media files.
+        """
+        from django.contrib.staticfiles.finders import find
+        from django.templatetags.static import static
+
+        sample_name = f'img/samples/{self.slug}.jpg'
+        if find(sample_name):
+            return static(sample_name)
+        if self.hero_image:
+            try:
+                return self.hero_image.url
+            except ValueError:
+                pass
+        return ''
+
+    @property
+    def has_hero(self) -> bool:
+        return bool(self.hero_url)
+
+    @property
     def is_published(self) -> bool:
         return self.status == 'published' and self.published_at and self.published_at <= timezone.now()
 

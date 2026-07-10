@@ -9,7 +9,7 @@
 <meta property="og:description" content="{{ article.excerpt }}">
 <meta property="og:type" content="article">
 <meta property="og:url" content="{{ site_url }}{{ article.get_absolute_url }}">
-{% if article.hero_image %}<meta property="og:image" content="{{ site_url }}{{ article.hero_image.url }}">{% endif %}
+{% if article.hero_url %}<meta property="og:image" content="{{ site_url }}{{ article.hero_url }}">{% endif %}
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {
@@ -64,8 +64,8 @@
                     {% video_embed article.video_url caption=article.hero_image_caption css_class='hero-video' %}
                     {% else %}
                     <div class="hero-media-wrap rounded">
-                    {% if article.hero_image %}
-                    <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
+                    {% if article.hero_url %}
+                    <img src="{{ article.hero_url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
                     {% else %}
                     <div class="hero-img article-thumb-placeholder">
                         <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>

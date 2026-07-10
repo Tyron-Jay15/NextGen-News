@@ -17,13 +17,13 @@
                     <div class="hero-video-thumb">
                         {% if article.video_info.thumbnail_url %}
                         <img src="{{ article.video_info.thumbnail_url }}" class="hero-img" alt="{{ article.title }}" loading="eager">
-                        {% elif article.hero_image %}
-                        <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager">
+                        {% elif article.hero_url %}
+                        <img src="{{ article.hero_url }}" class="hero-img" alt="{{ article.title }}" loading="eager">
                         {% endif %}
                         <span class="video-play-badge video-play-badge-lg"><i class="bi bi-play-fill"></i></span>
                     </div>
-                    {% elif article.hero_image %}
-                    <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
+                    {% elif article.hero_url %}
+                    <img src="{{ article.hero_url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
                     {% else %}
                     <div class="hero-img article-thumb-placeholder">
                         <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>
@@ -49,8 +49,8 @@
                 <div class="featured-sidebar">
                     {% for article in featured|slice:"1:5" %}
                     <article class="sidebar-article d-flex gap-3 mb-3">
-                        {% if article.hero_image %}
-                        <img src="{{ article.hero_image.url }}" alt="" class="sidebar-thumb" loading="lazy" decoding="async">
+                        {% if article.hero_url %}
+                        <img src="{{ article.hero_url }}" alt="" class="sidebar-thumb" loading="lazy" decoding="async">
                         {% else %}
                         <div class="sidebar-thumb article-thumb-placeholder">
                             <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>

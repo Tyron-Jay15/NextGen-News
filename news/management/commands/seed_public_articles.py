@@ -1,7 +1,9 @@
 """Seed published sample articles for environments that cannot scrape RSS (e.g. free PA)."""
 from datetime import timedelta
+from pathlib import Path
 
 import requests
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -13,7 +15,7 @@ from categories.models import Category, Tag
 from news.models import Article
 from news.services import ArticleService
 from news.utils.images import optimize_image_bytes
-from news.utils.placeholders import assign_hero_image
+from news.utils.placeholders import assign_hero_image, generate_placeholder_image
 
 
 SAMPLE_ARTICLES = [
@@ -405,10 +407,22 @@ class Command(BaseCommand):
         return author
 
     def _assign_image(self, article: Article, index: int, seed: str, force: bool = False) -> None:
-        # Always generate a local high-res image first (works on free PA with no outbound HTTP).
+        # Packaged static sample (served by WhiteNoise /collectstatic — reliable on PA)
+        self._write_static_sample(article, index)
+        # Also store under MEDIA for local/admin previews
         assign_hero_image(article, index=index, force=True)
-        # Optionally replace with a stock photo when the network allows it.
+        # Optionally replace media file with a stock photo when the network allows it
         self._download_stock_image(article, seed)
+
+    def _write_static_sample(self, article: Article, index: int) -> None:
+        samples_dir = Path(settings.BASE_DIR) / 'static' / 'img' / 'samples'
+        samples_dir.mkdir(parents=True, exist_ok=True)
+        path = samples_dir / f'{article.slug}.jpg'
+        if path.exists() and path.stat().st_size > 10000:
+            return
+        category_name = article.category.name if article.category else 'News'
+        buffer = generate_placeholder_image(article.title, category_name, index)
+        path.write_bytes(buffer.read())
 
     def _download_stock_image(self, article: Article, seed: str) -> bool:
         """Try a high-res public photo; ignore failures on locked-down hosts."""

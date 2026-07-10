@@ -124,11 +124,19 @@ If articles show but images do not:
 
 ```bash
 cd ~/News && source venv/bin/activate
+git pull origin main
 python manage.py seed_public_articles --force
-ls media/articles/hero | head
+python manage.py collectstatic --noinput
 ```
 
-Then confirm `/media/` is mapped (or `SERVE_MEDIA=True`) and **Reload**.
+Sample article photos are stored under **`static/img/samples/`** and are served as
+normal static files (not `/media/`). After `collectstatic`, confirm this Web mapping:
+
+| URL | Directory |
+|-----|-----------|
+| `/static/` | `/home/yourusername/News/staticfiles` |
+
+Then **Reload** the web app.
 
 ## 5. Scheduled news scrape
 
