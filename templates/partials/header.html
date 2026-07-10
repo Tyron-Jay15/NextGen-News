@@ -1,0 +1,71 @@
+<header class="site-header sticky-top">
+    <div class="top-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="date-display"><i class="bi bi-calendar3"></i> {% now "l, F j, Y" %}</span>
+            <div class="top-links">
+                {% if user.is_authenticated and user.is_staff_member %}
+                <a href="{% url 'dashboard:home' %}"><i class="bi bi-grid"></i> Staff</a>
+                {% include 'partials/logout_form.html' with form_class='logout-form-inline' button_class='logout-link' %}
+                {% else %}
+                <a href="{% url 'accounts:login' %}" class="staff-login-link">Staff Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark main-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'news:home' %}">
+                <span class="brand-icon">NG</span> {{ site_name }}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'news:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item dropdown categories-dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false" id="categoriesDropdown">
+                            Categories
+                        </a>
+                        <div class="dropdown-menu mega-menu" aria-labelledby="categoriesDropdown">
+                            <div class="mega-menu-header">
+                                <span>Browse Sections</span>
+                                <a href="{% url 'categories:list' %}" class="mega-menu-view-all">View all</a>
+                            </div>
+                            <div class="mega-menu-grid">
+                                {% for cat in nav_categories %}
+                                <a class="mega-menu-item" href="{{ cat.get_absolute_url }}">
+                                    <span class="mega-menu-icon">
+                                        <i class="bi {{ cat.icon|default:'bi-newspaper' }}"></i>
+                                    </span>
+                                    <span class="mega-menu-label">{{ cat.name }}</span>
+                                </a>
+                                {% empty %}
+                                <p class="mega-menu-empty">No categories available.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'news:article_list' %}">Latest</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'authors:list' %}">Authors</a>
+                    </li>
+                </ul>
+                <form class="d-flex search-form ms-lg-3" action="{% url 'search:search' %}" method="get" role="search">
+                    <input class="form-control me-2" type="search" name="q" id="searchInput"
+                           placeholder="Search news..." autocomplete="off" aria-label="Search">
+                    <button class="btn btn-accent" type="submit" aria-label="Submit search">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <div id="searchAutocomplete" class="search-autocomplete"></div>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>

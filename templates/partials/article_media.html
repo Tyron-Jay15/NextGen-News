@@ -1,0 +1,26 @@
+{% load video_tags %}
+<section class="article-media-gallery mt-4">
+    {% for media in media_items %}
+    {% if media.media_type == 'video' and media.url %}
+    {% video_embed media.url caption=media.caption css_class='mb-4' %}
+    {% elif media.media_type == 'image' %}
+    <figure class="article-inline-media mb-4">
+        {% if media.file %}
+        <img src="{{ media.file.url }}" alt="{{ media.caption|default:'' }}" class="img-fluid rounded" loading="lazy">
+        {% elif media.url %}
+        <img src="{{ media.url }}" alt="{{ media.caption|default:'' }}" class="img-fluid rounded" loading="lazy">
+        {% endif %}
+        {% if media.caption %}<figcaption class="text-muted small mt-2">{{ media.caption }}</figcaption>{% endif %}
+    </figure>
+    {% elif media.media_type == 'audio' %}
+    <figure class="article-inline-media mb-4">
+        {% if media.file %}
+        <audio controls class="w-100" src="{{ media.file.url }}"></audio>
+        {% elif media.url %}
+        <audio controls class="w-100" src="{{ media.url }}"></audio>
+        {% endif %}
+        {% if media.caption %}<figcaption class="text-muted small mt-2">{{ media.caption }}</figcaption>{% endif %}
+    </figure>
+    {% endif %}
+    {% endfor %}
+</section>

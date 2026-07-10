@@ -1,0 +1,48 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h5 class="footer-brand">{{ site_name }}</h5>
+                <p class="text-muted">{% if site_settings %}{{ site_settings.tagline }}{% else %}Your trusted source for news.{% endif %}</p>
+                <div class="social-links">
+                    {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}"><i class="bi bi-facebook"></i></a>{% endif %}
+                    {% if site_settings.twitter_url %}<a href="{{ site_settings.twitter_url }}"><i class="bi bi-twitter-x"></i></a>{% endif %}
+                    {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}"><i class="bi bi-instagram"></i></a>{% endif %}
+                    {% if site_settings.youtube_url %}<a href="{{ site_settings.youtube_url }}"><i class="bi bi-youtube"></i></a>{% endif %}
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h6>Sections</h6>
+                <ul class="footer-links">
+                    {% for cat in nav_categories|slice:":6" %}
+                    <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h6>Company</h6>
+                <ul class="footer-links">
+                    <li><a href="{% url 'authors:list' %}">Authors</a></li>
+                    <li><a href="{% url 'search:search' %}">Search</a></li>
+                    <li><a href="#newsletter">Newsletter</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4 col-md-4" id="newsletter">
+                <h6>Newsletter</h6>
+                <p class="text-muted small">Get the latest news delivered to your inbox.</p>
+                <form action="{% url 'news:newsletter_subscribe' %}" method="post" class="newsletter-form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="email" name="email" class="form-control" placeholder="Email address" required>
+                        <button class="btn btn-accent" type="submit">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="footer-bottom d-flex justify-content-between">
+            <span>&copy; {% now "Y" %} {{ site_name }}. All rights reserved.</span>
+            <span class="text-muted">NextGen News Management System</span>
+        </div>
+    </div>
+</footer>

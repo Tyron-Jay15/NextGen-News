@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Search{% if query %}: {{ query }}{% endif %} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Search Results{% if query %} for "{{ query }}"{% endif %}</h2>
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="card p-3">
+                <h6>Advanced Filters</h6>
+                <form method="get">
+                    {{ form.q.as_hidden }}
+                    <div class="mb-2">{{ form.province.label_tag }} {{ form.province }}</div>
+                    <div class="mb-2">{{ form.municipality.label_tag }} {{ form.municipality }}</div>
+                    <div class="mb-2">{{ form.date_from.label_tag }} {{ form.date_from }}</div>
+                    <div class="mb-2">{{ form.date_to.label_tag }} {{ form.date_to }}</div>
+                    <div class="mb-2">{{ form.sort.label_tag }} {{ form.sort }}</div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <p class="text-muted">{{ articles|length }} result(s) found</p>
+            <div class="row g-4">
+                {% for article in articles %}
+                <div class="col-md-6">{% include 'partials/article_card.html' with article=article %}</div>
+                {% empty %}
+                <p>No articles found matching your search.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

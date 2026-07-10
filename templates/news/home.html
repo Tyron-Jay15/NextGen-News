@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ site_name }} - Latest News{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row g-4">
+            {% if featured %}
+            <div class="col-lg-8">
+                {% with article=featured.0 %}
+                <article class="hero-article card border-0 shadow-sm overflow-hidden">
+                    <a href="{{ article.get_absolute_url }}">
+                    <div class="hero-media-wrap">
+                    {% if article.has_video %}
+                    <div class="hero-video-thumb">
+                        {% if article.video_info.thumbnail_url %}
+                        <img src="{{ article.video_info.thumbnail_url }}" class="hero-img" alt="{{ article.title }}" loading="eager">
+                        {% elif article.hero_image %}
+                        <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager">
+                        {% endif %}
+                        <span class="video-play-badge video-play-badge-lg"><i class="bi bi-play-fill"></i></span>
+                    </div>
+                    {% elif article.hero_image %}
+                    <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
+                    {% else %}
+                    <div class="hero-img article-thumb-placeholder">
+                        <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>
+                        <span class="placeholder-title">{{ article.title }}</span>
+                    </div>
+                    {% endif %}
+                    </div>
+                    </a>
+                    <div class="card-body">
+                        <span class="badge bg-accent">{{ article.category.name|default:"News" }}</span>
+                        <h1 class="hero-title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h1>
+                        <p class="hero-excerpt">{{ article.excerpt }}</p>
+                        <div class="article-meta">
+                            <span><i class="bi bi-person"></i> {{ article.author.display_name|default:"Staff" }}</span>
+                            <span><i class="bi bi-clock"></i> {{ article.reading_time_minutes }} min read</span>
+                            <span><i class="bi bi-eye"></i> {{ article.view_count|intcomma }} views</span>
+                        </div>
+                    </div>
+                </article>
+                {% endwith %}
+            </div>
+            <div class="col-lg-4">
+                <div class="featured-sidebar">
+                    {% for article in featured|slice:"1:5" %}
+                    <article class="sidebar-article d-flex gap-3 mb-3">
+                        {% if article.hero_image %}
+                        <img src="{{ article.hero_image.url }}" alt="" class="sidebar-thumb" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="sidebar-thumb article-thumb-placeholder">
+                            <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6><a href="{{ article.get_absolute_url }}">{{ article.title|truncatechars:60 }}</a></h6>
+                            <small class="text-muted">{{ article.published_at|timesince }} ago</small>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="section-header d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="section-title">Latest News</h2>
+                    <a href="{% url 'news:article_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
+                <div class="row g-4">
+                    {% for article in latest %}
+                    <div class="col-md-6">
+                        {% include 'partials/article_card.html' with article=article %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No articles published yet.</p>
+                    {% endfor %}
+                </div>
+
+                {% if editors_picks %}
+                <div class="section-header mt-5 mb-4">
+                    <h2 class="section-title">Editor's Picks</h2>
+                </div>
+                <div class="row g-4">
+                    {% for article in editors_picks %}
+                    <div class="col-md-6">
+                        {% include 'partials/article_card.html' with article=article %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    {% include 'partials/sidebar.html' with trending=trending most_viewed=most_viewed sidebar_ads=sidebar_ads %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if categories %}
+<section class="category-section py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title mb-4">Browse by Category</h2>
+        <div class="row g-3">
+            {% for cat in categories %}
+            <div class="col-md-3 col-6">
+                <a href="{{ cat.get_absolute_url }}" class="category-card card text-center p-3 h-100 text-decoration-none">
+                    {% if cat.icon %}<i class="bi {{ cat.icon }} category-icon"></i>{% endif %}
+                    <h6 class="mt-2 mb-0">{{ cat.name }}</h6>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

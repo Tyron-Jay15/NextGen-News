@@ -1,0 +1,20 @@
+{% if info %}
+<figure class="video-embed {{ css_class }}">
+    <div class="video-embed-wrap">
+        <iframe
+            src="{{ info.embed_url }}"
+            title="Video player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+            loading="lazy"
+        ></iframe>
+    </div>
+    <p class="video-watch-link small mt-2 mb-0">
+        <a href="{{ info.watch_url }}" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-youtube"></i> Watch on {% if info.provider == 'vimeo' %}Vimeo{% else %}YouTube{% endif %}
+        </a>
+    </p>
+    {% if caption %}<figcaption class="text-muted small mt-2">{{ caption }}</figcaption>{% endif %}
+</figure>
+{% endif %}

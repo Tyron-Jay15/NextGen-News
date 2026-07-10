@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ author.display_name }} - {{ site_name }}{% endblock %}
+{% block meta_description %}{{ author.biography|truncatechars:160 }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'authors:list' %}">Authors</a></li>
+            <li class="breadcrumb-item active">{{ author.display_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 text-center">
+            {% if author.photo %}
+            <img src="{{ author.photo.url }}" alt="{{ author.display_name }}"
+                 class="author-profile-photo rounded-circle mb-3">
+            {% else %}
+            <div class="author-profile-placeholder rounded-circle mb-3 mx-auto">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            {% endif %}
+            <div class="author-social mt-3">
+                {% if author.twitter %}<a href="{{ author.twitter }}" class="me-2"><i class="bi bi-twitter-x"></i></a>{% endif %}
+                {% if author.facebook %}<a href="{{ author.facebook }}" class="me-2"><i class="bi bi-facebook"></i></a>{% endif %}
+                {% if author.instagram %}<a href="{{ author.instagram }}" class="me-2"><i class="bi bi-instagram"></i></a>{% endif %}
+                {% if author.linkedin %}<a href="{{ author.linkedin }}" class="me-2"><i class="bi bi-linkedin"></i></a>{% endif %}
+                {% if author.website %}<a href="{{ author.website }}"><i class="bi bi-globe"></i></a>{% endif %}
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h1 class="section-title">{{ author.display_name }}</h1>
+            {% if author.job_title %}<p class="lead text-muted">{{ author.job_title }}</p>{% endif %}
+            {% if author.is_featured %}<span class="badge bg-accent mb-3">Featured Author</span>{% endif %}
+            <div class="author-stats d-flex gap-4 mb-4">
+                <div>
+                    <strong class="d-block fs-4">{{ author.article_count }}</strong>
+                    <span class="text-muted small">Published Articles</span>
+                </div>
+                <div>
+                    <strong class="d-block fs-4">{{ author.total_views|default:0 }}</strong>
+                    <span class="text-muted small">Total Views</span>
+                </div>
+            </div>
+            {% if author.biography %}
+            <div class="author-bio">
+                <h5>Biography</h5>
+                <p>{{ author.biography|linebreaks }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <h3 class="section-title mb-4">Published Articles</h3>
+    <div class="row g-4">
+        {% for article in articles %}
+        <div class="col-md-4">
+            {% include 'partials/article_card.html' with article=article %}
+        </div>
+        {% empty %}
+        <p class="text-muted">No published articles yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.author-profile-photo {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+}
+.author-profile-placeholder {
+    width: 160px;
+    height: 160px;
+    background: var(--secondary, #0055A5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+.author-social a {
+    color: var(--primary, #003366);
+    font-size: 1.3rem;
+}
+</style>
+{% endblock %}

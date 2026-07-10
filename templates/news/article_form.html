@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit{% else %}Create{% endif %} Article - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>{% if object %}Edit Article{% else %}Create Article{% endif %}</h2>
+    <form method="post" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'dashboard:articles' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

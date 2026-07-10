@@ -1,0 +1,45 @@
+{% load humanize %}
+<div class="sidebar-widget mb-4">
+    <h5 class="widget-title">Trending</h5>
+    <ul class="list-unstyled trending-list">
+        {% for article in trending %}
+        <li class="mb-2">
+            <a href="{{ article.get_absolute_url }}" class="text-decoration-none">
+                <span class="trending-num">{{ forloop.counter }}</span>
+                {{ article.title|truncatechars:55 }}
+            </a>
+        </li>
+        {% empty %}
+        <li class="text-muted small">No trending articles yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="sidebar-widget mb-4">
+    <h5 class="widget-title">Most Viewed</h5>
+    {% for article in most_viewed %}
+    <article class="sidebar-article d-flex gap-2 mb-2">
+        <div>
+            <a href="{{ article.get_absolute_url }}" class="small fw-semibold text-decoration-none">
+                {{ article.title|truncatechars:50 }}
+            </a>
+            <small class="text-muted d-block">{{ article.view_count|intcomma }} views</small>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+{% if sidebar_ads %}
+<div class="sidebar-widget ad-widget mb-4">
+    {% for ad in sidebar_ads %}
+    <a href="{{ ad.target_url }}" target="_blank" rel="noopener sponsored" class="d-block mb-2">
+        {% if ad.image %}<img src="{{ ad.image.url }}" alt="{{ ad.alt_text }}" class="img-fluid rounded">{% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="sidebar-widget weather-widget card p-3 mb-4">
+    <h6><i class="bi bi-cloud-sun"></i> Weather</h6>
+    <p class="mb-0 small text-muted" id="weatherWidget">Loading weather...</p>
+</div>

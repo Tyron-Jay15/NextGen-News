@@ -1,0 +1,56 @@
+{% extends 'dashboard/home.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 dashboard">
+    <div class="row">
+        <div class="col-md-2 sidebar-nav bg-primary text-white p-3 min-vh-100">
+            <h5 class="mb-4">Dashboard</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link text-white-50" href="{% url 'dashboard:home' %}">Overview</a>
+                <a class="nav-link text-white active" href="{% url 'dashboard:articles' %}">Articles</a>
+                <a class="nav-link text-white-50" href="{% url 'dashboard:comments' %}">Comments</a>
+                <a class="nav-link text-white-50" href="{% url 'news:article_create' %}">New Article</a>
+            </nav>
+        </div>
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between mb-4">
+                <h2>Articles</h2>
+                <a href="{% url 'news:article_create' %}" class="btn btn-primary">New Article</a>
+            </div>
+            <div class="btn-group mb-3">
+                <a href="?status=" class="btn btn-outline-secondary btn-sm">All</a>
+                <a href="?status=draft" class="btn btn-outline-secondary btn-sm">Drafts</a>
+                <a href="?status=pending_review" class="btn btn-outline-secondary btn-sm">Pending</a>
+                <a href="?status=published" class="btn btn-outline-secondary btn-sm">Published</a>
+            </div>
+            <table class="table table-hover">
+                <thead><tr><th>Title</th><th>Author</th><th>Status</th><th>Views</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for article in articles %}
+                    <tr>
+                        <td>{{ article.title|truncatechars:50 }}</td>
+                        <td>{{ article.author.display_name|default:"—" }}</td>
+                        <td><span class="badge bg-secondary">{{ article.status }}</span></td>
+                        <td>{{ article.view_count }}</td>
+                        <td>
+                            <a href="{% url 'news:article_edit' article.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            {% if article.status == 'draft' %}
+                            <a href="{% url 'dashboard:article_workflow' article.pk 'pending_review' %}" class="btn btn-sm btn-outline-success">Submit</a>
+                            {% elif article.status == 'approved' %}
+                            <a href="{% url 'dashboard:article_workflow' article.pk 'published' %}" class="btn btn-sm btn-success">Publish</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if is_paginated %}
+            <nav><ul class="pagination">
+                {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
+                {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+            </ul></nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

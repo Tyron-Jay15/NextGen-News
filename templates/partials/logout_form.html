@@ -1,0 +1,6 @@
+<form action="{% url 'accounts:logout' %}" method="post" class="logout-form{% if form_class %} {{ form_class }}{% endif %}">
+    {% csrf_token %}
+    <button type="submit" class="{{ button_class|default:'logout-btn' }}">
+        {% if icon %}<i class="bi {{ icon }}{% if icon_spacing %} {{ icon_spacing }}{% endif %}"></i>{% endif %}{{ label|default:"Logout" }}
+    </button>
+</form>

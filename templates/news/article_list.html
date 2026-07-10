@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Articles - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="section-title mb-4">{{ page_title|default:"Latest News" }}</h2>
+    <div class="row g-4">
+        {% for article in articles %}
+        <div class="col-md-4">{% include 'partials/article_card.html' with article=article %}</div>
+        {% empty %}
+        <p class="text-muted">No articles found.</p>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+    <nav class="mt-4"><ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+    </ul></nav>
+    {% endif %}
+</div>
+{% endblock %}

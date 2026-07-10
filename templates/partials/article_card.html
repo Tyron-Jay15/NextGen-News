@@ -1,0 +1,37 @@
+<article class="article-card card h-100 border-0 shadow-sm">
+    <a href="{{ article.get_absolute_url }}" class="text-decoration-none">
+        <div class="article-media-wrap{% if article.has_video %} has-video{% endif %}">
+            {% if article.hero_image %}
+            <img src="{{ article.hero_image.url }}" class="article-thumb" alt="{{ article.title }}" loading="lazy" decoding="async">
+            {% elif article.video_info and article.video_info.thumbnail_url %}
+            <img src="{{ article.video_info.thumbnail_url }}" class="article-thumb" alt="{{ article.title }}" loading="lazy" decoding="async">
+            {% else %}
+            <div class="article-thumb-placeholder" data-category="{{ article.category.name|default:'News' }}">
+                <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>
+                <span class="placeholder-title">{{ article.title|truncatechars:60 }}</span>
+            </div>
+            {% endif %}
+            {% if article.has_video %}
+            <span class="video-play-badge" aria-hidden="true"><i class="bi bi-play-fill"></i></span>
+            {% endif %}
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="card-badges mb-2">
+            {% if article.is_breaking %}<span class="badge bg-danger">Breaking</span>{% endif %}
+            {% if article.has_video %}<span class="badge bg-dark">Video</span>{% endif %}
+            {% if article.category %}<span class="badge bg-primary">{{ article.category.name }}</span>{% endif %}
+        </div>
+        <h5 class="card-title">
+            <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">{{ article.title }}</a>
+        </h5>
+        <p class="card-text text-muted small">{{ article.excerpt|truncatechars:120 }}</p>
+        <div class="article-meta small text-muted">
+            <span>{{ article.author.display_name|default:"Staff" }}</span>
+            <span>&middot;</span>
+            <span>{{ article.published_at|timesince }} ago</span>
+            <span>&middot;</span>
+            <span>{{ article.reading_time_minutes }} min</span>
+        </div>
+    </div>
+</article>

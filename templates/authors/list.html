@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Authors - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="section-title mb-4">Our Authors</h1>
+    <p class="text-muted mb-5">Meet the journalists and contributors behind {{ site_name }}.</p>
+
+    <div class="row g-4">
+        {% for author in authors %}
+        <div class="col-md-4 col-sm-6">
+            <div class="card author-card h-100 border-0 shadow-sm text-center">
+                <div class="card-body p-4">
+                    {% if author.photo %}
+                    <img src="{{ author.photo.url }}" alt="{{ author.display_name }}"
+                         class="author-card-photo rounded-circle mb-3">
+                    {% else %}
+                    <div class="author-card-placeholder rounded-circle mb-3 mx-auto">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    {% endif %}
+                    <h5 class="card-title mb-1">
+                        <a href="{{ author.get_absolute_url }}" class="text-decoration-none text-dark">
+                            {{ author.display_name }}
+                        </a>
+                    </h5>
+                    {% if author.job_title %}
+                    <p class="text-muted small mb-2">{{ author.job_title }}</p>
+                    {% endif %}
+                    {% if author.is_featured %}
+                    <span class="badge bg-accent mb-2">Featured</span>
+                    {% endif %}
+                    <p class="card-text small text-muted">{{ author.biography|truncatechars:120 }}</p>
+                    <div class="author-stats small text-muted">
+                        <span><i class="bi bi-file-text"></i> {{ author.article_count }} articles</span>
+                    </div>
+                    <a href="{{ author.get_absolute_url }}" class="btn btn-outline-primary btn-sm mt-3">
+                        View Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">No authors found yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.author-card-photo {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+.author-card-placeholder {
+    width: 100px;
+    height: 100px;
+    background: var(--secondary, #0055A5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+}
+</style>
+{% endblock %}

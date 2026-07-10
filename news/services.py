@@ -1,0 +1,139 @@
+"""News business logic services."""
+from typing import Optional
+
+from django.db.models import Count, F, Q, QuerySet
+from django.utils import timezone
+
+from config.utils import estimate_reading_time, generate_content_hash
+from news.models import Article, ArticleRevision, Bookmark, ReadingHistory
+
+
+class ArticleService:
+    """Service layer for article operations."""
+
+    @staticmethod
+    def get_published() -> QuerySet[Article]:
+        return Article.objects.filter(
+            status='published',
+            published_at__lte=timezone.now(),
+        ).filter(
+            Q(is_scraped=False) | Q(verification_status='verified')
+        ).select_related('author', 'category').prefetch_related('tags')
+
+    @staticmethod
+    def get_homepage_articles() -> dict:
+        published = ArticleService.get_published()
+        return {
+            'latest': published.order_by('-published_at')[:12],
+            'breaking': published.filter(is_breaking=True).order_by('-published_at')[:5],
+            'featured': published.filter(is_featured=True).order_by('-published_at')[:6],
+            'editors_picks': published.filter(is_editors_pick=True).order_by('-published_at')[:4],
+            'trending': published.order_by('-view_count')[:8],
+            'most_viewed': published.order_by('-view_count')[:5],
+            'most_commented': published.order_by('-comment_count')[:5],
+            'most_shared': published.order_by('-share_count')[:5],
+        }
+
+    @staticmethod
+    def prepare_article(article: Article, user=None) -> Article:
+        """Prepare article metadata before save."""
+        import re
+        text = re.sub(r'<[^>]+>', '', article.body)
+        article.reading_time_minutes = estimate_reading_time(text)
+        article.duplicate_hash = generate_content_hash(text)
+        if not article.excerpt:
+            article.excerpt = text[:300]
+        return article
+
+    @staticmethod
+    def save_revision(article: Article, user, summary: str = '') -> ArticleRevision:
+        return ArticleRevision.objects.create(
+            article=article,
+            title=article.title,
+            body=article.body,
+            status=article.status,
+            edited_by=user,
+            change_summary=summary,
+        )
+
+    @staticmethod
+    def transition_status(article: Article, new_status: str, user) -> Article:
+        """Editorial workflow status transitions."""
+        valid_transitions = {
+            'draft': ['pending_review'],
+            'pending_review': ['fact_check', 'draft'],
+            'fact_check': ['approved', 'pending_review'],
+            'approved': ['scheduled', 'published'],
+            'scheduled': ['published'],
+            'published': ['archived'],
+        }
+        if new_status not in valid_transitions.get(article.status, []):
+            if not user.has_role('super_admin', 'admin', 'chief_editor'):
+                raise ValueError(f'Invalid transition from {article.status} to {new_status}')
+
+        article.status = new_status
+        if new_status == 'published':
+            article.published_at = timezone.now()
+        elif new_status == 'archived':
+            article.archived_at = timezone.now()
+        article.save()
+        ArticleService.save_revision(article, user, f'Status changed to {new_status}')
+        return article
+
+    @staticmethod
+    def get_related(article: Article, limit: int = 6) -> QuerySet[Article]:
+        return ArticleService.get_published().filter(
+            Q(category=article.category) | Q(tags__in=article.tags.all())
+        ).exclude(pk=article.pk).distinct().order_by('-published_at')[:limit]
+
+    @staticmethod
+    def get_prev_next(article: Article) -> tuple[Optional[Article], Optional[Article]]:
+        published = ArticleService.get_published()
+        prev_article = published.filter(published_at__lt=article.published_at).order_by('-published_at').first()
+        next_article = published.filter(published_at__gt=article.published_at).order_by('published_at').first()
+        return prev_article, next_article
+
+
+class BookmarkService:
+    @staticmethod
+    def toggle(user, article) -> bool:
+        bookmark, created = Bookmark.objects.get_or_create(user=user, article=article)
+        if not created:
+            bookmark.delete()
+            return False
+        return True
+
+
+class ReadingHistoryService:
+    @staticmethod
+    def record(user, article, duration: int = 0):
+        if not user.is_authenticated:
+            return
+        ReadingHistory.objects.update_or_create(
+            user=user, article=article,
+            defaults={'read_duration_seconds': duration},
+        )
+
+
+class AIService:
+    """AI-ready service stubs for future integration."""
+
+    @staticmethod
+    def generate_summary(article: Article) -> str:
+        if article.ai_summary:
+            return article.ai_summary
+        return article.excerpt or 'Summary will be generated by AI service.'
+
+    @staticmethod
+    def suggest_headlines(title: str) -> list[str]:
+        return [f'{title} — Latest Update', f'Breaking: {title}', f'Analysis: {title}']
+
+    @staticmethod
+    def suggest_tags(body: str) -> list[str]:
+        return []
+
+    @staticmethod
+    def detect_duplicates(article: Article) -> QuerySet[Article]:
+        if not article.duplicate_hash:
+            return Article.objects.none()
+        return Article.objects.filter(duplicate_hash=article.duplicate_hash).exclude(pk=article.pk)

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - {{ site_name }}{% endblock %}
+{% block meta_description %}{{ category.seo_description|default:category.description }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'categories:list' %}">Categories</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="category-header mb-5">
+        {% if category.icon %}<i class="bi {{ category.icon }} category-icon-lg"></i>{% endif %}
+        <h1 class="section-title">{{ category.name }}</h1>
+        {% if category.description %}<p class="lead text-muted">{{ category.description }}</p>{% endif %}
+    </div>
+
+    {% if subcategories %}
+    <div class="mb-4">
+        <h5>Subcategories</h5>
+        <div class="d-flex flex-wrap gap-2">
+            {% for sub in subcategories %}
+            <a href="{{ sub.get_absolute_url }}" class="btn btn-outline-primary btn-sm">{{ sub.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        {% for article in articles %}
+        <div class="col-md-4">{% include 'partials/article_card.html' with article=article %}</div>
+        {% empty %}
+        <p class="text-muted">No articles in this category yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.category-icon-lg { font-size: 2.5rem; color: var(--secondary, #0055A5); }
+</style>
+{% endblock %}

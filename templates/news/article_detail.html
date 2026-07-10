@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static humanize video_tags %}
+
+{% block title %}{{ article.seo_title|default:article.title }} - {{ site_name }}{% endblock %}
+{% block meta_description %}{{ article.seo_description|default:article.excerpt }}{% endblock %}
+
+{% block extra_css %}
+<meta property="og:title" content="{{ article.title }}">
+<meta property="og:description" content="{{ article.excerpt }}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ site_url }}{{ article.get_absolute_url }}">
+{% if article.hero_image %}<meta property="og:image" content="{{ site_url }}{{ article.hero_image.url }}">{% endif %}
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "{{ article.title|escapejs }}",
+  "datePublished": "{{ article.published_at|date:'c' }}",
+  "dateModified": "{{ article.updated_at|date:'c' }}",
+  "author": {"@type": "Person", "name": "{{ article.author.display_name|default:'Staff'|escapejs }}"},
+  "description": "{{ article.excerpt|escapejs }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="article-detail py-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'news:home' %}">Home</a></li>
+                        {% if article.category %}
+                        <li class="breadcrumb-item"><a href="{{ article.category.get_absolute_url }}">{{ article.category.name }}</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active">{{ article.title|truncatechars:40 }}</li>
+                    </ol>
+                </nav>
+
+                {% if article.is_breaking %}<span class="badge bg-danger mb-2">Breaking News</span>{% endif %}
+                {% if article.is_scraped and article.verification_status == 'verified' %}
+                <span class="badge bg-success mb-2"><i class="bi bi-shield-check"></i> Verified News</span>
+                {% endif %}
+                {% if article.has_video %}<span class="badge bg-dark mb-2"><i class="bi bi-play-circle"></i> Video</span>{% endif %}
+                <h1 class="article-headline">{{ article.title }}</h1>
+                {% if article.subtitle %}<p class="article-subtitle lead">{{ article.subtitle }}</p>{% endif %}
+
+                <div class="article-meta-bar d-flex flex-wrap gap-3 mb-4">
+                    {% if article.author %}
+                    <a href="{{ article.author.get_absolute_url }}" class="author-link">
+                        {% if article.author.photo %}<img src="{{ article.author.photo.url }}" class="author-avatar" alt="">{% endif %}
+                        {{ article.author.display_name }}
+                    </a>
+                    {% endif %}
+                    <span><i class="bi bi-calendar"></i> {{ article.published_at|date:"F j, Y" }}</span>
+                    <span><i class="bi bi-clock"></i> {{ article.reading_time_minutes }} min read</span>
+                    <span><i class="bi bi-eye"></i> {{ article.view_count|intcomma }} views</span>
+                </div>
+
+                <figure class="hero-figure mb-4">
+                    {% if article.has_video %}
+                    {% video_embed article.video_url caption=article.hero_image_caption css_class='hero-video' %}
+                    {% else %}
+                    <div class="hero-media-wrap rounded">
+                    {% if article.hero_image %}
+                    <img src="{{ article.hero_image.url }}" class="hero-img" alt="{{ article.title }}" loading="eager" decoding="async">
+                    {% else %}
+                    <div class="hero-img article-thumb-placeholder">
+                        <span class="placeholder-category">{{ article.category.name|default:"News" }}</span>
+                        <span class="placeholder-title">{{ article.title }}</span>
+                    </div>
+                    {% endif %}
+                    </div>
+                    {% if article.hero_image_caption %}<figcaption class="text-muted small mt-2">{{ article.hero_image_caption }}</figcaption>{% endif %}
+                    {% endif %}
+                </figure>
+
+                {% if ai_summary %}
+                <div class="ai-summary-box card mb-4">
+                    <div class="card-body">
+                        <h6><i class="bi bi-stars"></i> AI Summary</h6>
+                        <p class="mb-0">{{ ai_summary }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if article.is_scraped and article.external_url %}
+                <div class="alert alert-light border mb-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span class="mb-0"><i class="bi bi-box-arrow-up-right"></i> This story is from an external news source.</span>
+                    <a href="{{ article.external_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">Read full story at source</a>
+                </div>
+                {% endif %}
+
+                <div class="article-body">
+                    {{ article.body|safe }}
+                </div>
+
+                {% if article.media_items.exists %}
+                {% include 'partials/article_media.html' with media_items=article.media_items.all %}
+                {% endif %}
+
+                {% if article.tags.exists %}
+                <div class="article-tags mt-4">
+                    {% for tag in article.tags.all %}
+                    <a href="{{ tag.get_absolute_url }}" class="badge bg-light text-dark me-1">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="article-actions d-flex flex-wrap gap-2 mt-4 pt-4 border-top">
+                    <button class="btn btn-outline-primary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+                    <a href="{% url 'news:article_pdf' article.slug %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-pdf"></i> Download PDF</a>
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'news:toggle_bookmark' article.slug %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-{% if is_bookmarked %}warning{% else %}secondary{% endif %} btn-sm">
+                            <i class="bi bi-bookmark{% if is_bookmarked %}-fill{% endif %}"></i>
+                            {% if is_bookmarked %}Saved{% else %}Bookmark{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button class="btn btn-outline-secondary btn-sm share-btn" data-url="{{ article.get_absolute_url }}">
+                        <i class="bi bi-share"></i> Share
+                    </button>
+                </div>
+
+                <nav class="article-nav d-flex justify-content-between mt-4">
+                    {% if prev_article %}
+                    <a href="{{ prev_article.get_absolute_url }}" class="text-decoration-none">&larr; {{ prev_article.title|truncatechars:40 }}</a>
+                    {% else %}<span></span>{% endif %}
+                    {% if next_article %}
+                    <a href="{{ next_article.get_absolute_url }}" class="text-decoration-none">{{ next_article.title|truncatechars:40 }} &rarr;</a>
+                    {% endif %}
+                </nav>
+
+                <section class="comments-section mt-5">
+                    <h4>Comments ({{ comments.count }})</h4>
+                    {% if article.allow_comments %}
+                    <form action="{% url 'comments:post' article.slug %}" method="post" class="mb-4 comment-form">
+                        {% csrf_token %}
+                        {{ comment_form.body }}
+                        <p class="text-muted small mt-2 mb-0">
+                            <i class="bi bi-incognito"></i> You will appear with a random name like <em>anonymous123</em>. No account needed.
+                        </p>
+                        <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+                    </form>
+                    {% endif %}
+                    {% for comment in comments %}
+                    <div class="comment card mb-3">
+                        <div class="card-body">
+                            <strong>{{ comment.display_name }}</strong>
+                            <small class="text-muted ms-2">{{ comment.created_at|timesince }} ago</small>
+                            <p class="mt-2 mb-0">{{ comment.body }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No comments yet. Be the first to comment!</p>
+                    {% endfor %}
+                </section>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    {% include 'partials/sidebar.html' with trending=popular_articles most_viewed=popular_articles sidebar_ads=sidebar_ads %}
+                    {% if related_articles %}
+                    <div class="sidebar-widget">
+                        <h5 class="widget-title">Related Articles</h5>
+                        {% for rel in related_articles %}
+                        <article class="mb-2">
+                            <a href="{{ rel.get_absolute_url }}" class="small text-decoration-none">{{ rel.title|truncatechars:55 }}</a>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</article>
+{% endblock %}
