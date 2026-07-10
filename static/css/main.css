@@ -166,14 +166,21 @@ h1, h2, h3, .section-title, .hero-title, .article-headline {
 .breaking-ticker a:hover { text-decoration: underline; }
 
 /* Hero */
-.hero-img { max-height: 480px; width: 100%; object-fit: cover; object-position: center; }
+.hero-img {
+    max-height: 520px;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    image-rendering: auto;
+}
 .hero-media-wrap {
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #dee2e6;
+    background: #0d2137;
 }
 .hero-media-wrap .hero-img {
     max-height: none;
+    width: 100%;
     height: 100%;
 }
 .hero-title { font-size: 2rem; line-height: 1.3; }

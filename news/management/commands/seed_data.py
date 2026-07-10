@@ -103,7 +103,9 @@ class Command(BaseCommand):
         )
 
         call_command('setup_scraper_sources')
+        call_command('seed_public_articles')
 
         self.stdout.write(self.style.SUCCESS(
-            'Seed complete. Run `python manage.py prepare_live_news` to load verified RSS articles.'
+            'Seed complete. Sample articles are published for public browsing. '
+            'On paid hosting you can also run `python manage.py scrape_news` for live RSS.'
         ))

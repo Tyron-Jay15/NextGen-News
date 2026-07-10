@@ -6,8 +6,8 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 
 MIN_HERO_WIDTH = 900
-TARGET_WIDTH = 1400
-TARGET_HEIGHT = 788  # 16:9
+TARGET_WIDTH = 1920
+TARGET_HEIGHT = 1080  # 16:9
 
 
 def upgrade_image_url(url: str) -> str:

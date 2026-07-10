@@ -1,8 +1,9 @@
-"""Generate placeholder hero images for articles."""
+"""Generate high-resolution placeholder hero images for articles."""
 from io import BytesIO
+from pathlib import Path
 
 from django.core.files.base import ContentFile
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 
 # Brand-aligned gradient pairs (top, bottom)
@@ -21,8 +22,31 @@ GRADIENTS = [
     ('#154360', '#5dade2'),
 ]
 
+HERO_WIDTH = 1920
+HERO_HEIGHT = 1080
 
-def _wrap_title(title: str, max_chars: int = 28) -> list[str]:
+_FONT_CANDIDATES = [
+    Path('C:/Windows/Fonts/arialbd.ttf'),
+    Path('C:/Windows/Fonts/arial.ttf'),
+    Path('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+    Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),
+    Path('/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'),
+    Path('/Library/Fonts/Arial Bold.ttf'),
+    Path('/Library/Fonts/Arial.ttf'),
+]
+
+
+def _load_font(size: int) -> ImageFont.ImageFont:
+    for path in _FONT_CANDIDATES:
+        if path.exists():
+            try:
+                return ImageFont.truetype(str(path), size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
+def _wrap_title(title: str, max_chars: int = 34) -> list[str]:
     words = title.split()
     lines: list[str] = []
     current: list[str] = []
@@ -37,18 +61,17 @@ def _wrap_title(title: str, max_chars: int = 28) -> list[str]:
             length += len(word) + 1
     if current:
         lines.append(' '.join(current))
-    return lines[:3]
+    return lines[:4]
 
 
 def generate_placeholder_image(title: str, category: str = '', index: int = 0) -> BytesIO:
-    """Create a high-resolution JPEG placeholder with title and category overlay."""
-    width, height = 1400, 788
+    """Create a sharp 1920x1080 JPEG placeholder with title and category overlay."""
+    width, height = HERO_WIDTH, HERO_HEIGHT
     top_color, bottom_color = GRADIENTS[index % len(GRADIENTS)]
 
     img = Image.new('RGB', (width, height), top_color)
     draw = ImageDraw.Draw(img)
 
-    # Vertical gradient
     r1, g1, b1 = int(top_color[1:3], 16), int(top_color[3:5], 16), int(top_color[5:7], 16)
     r2, g2, b2 = int(bottom_color[1:3], 16), int(bottom_color[3:5], 16), int(bottom_color[5:7], 16)
     for y in range(height):
@@ -58,32 +81,34 @@ def generate_placeholder_image(title: str, category: str = '', index: int = 0) -
         b = int(b1 + (b2 - b1) * ratio)
         draw.line([(0, y), (width, y)], fill=(r, g, b))
 
-    # Accent bar
-    draw.rectangle([(0, 0), (width, 6)], fill='#FFB400')
+    # Soft light bloom for depth
+    bloom = Image.new('RGB', (width, height), (255, 255, 255))
+    bloom_mask = Image.new('L', (width, height), 0)
+    bloom_draw = ImageDraw.Draw(bloom_mask)
+    bloom_draw.ellipse([width // 3, -height // 4, width + 80, height // 2], fill=55)
+    img = Image.composite(bloom, img, bloom_mask)
+    draw = ImageDraw.Draw(img)
 
-    # Dark overlay for text area
-    draw.rectangle([(0, height - 200), (width, height)], fill=(10, 25, 45))
+    draw.rectangle([(0, 0), (width, 10)], fill='#FFB400')
+    draw.rectangle([(0, height - 280), (width, height)], fill=(8, 18, 34))
 
-    try:
-        font_large = ImageFont.truetype('arial.ttf', 48)
-        font_small = ImageFont.truetype('arial.ttf', 24)
-    except OSError:
-        font_large = ImageFont.load_default()
-        font_small = ImageFont.load_default()
+    font_large = _load_font(64)
+    font_small = _load_font(28)
+    font_brand = _load_font(26)
 
-    # Category label
     if category:
-        draw.text((40, height - 185), category.upper(), fill='#FFB400', font=font_small)
+        draw.text((56, height - 250), category.upper(), fill='#FFB400', font=font_small)
 
-    # Title lines
     lines = _wrap_title(title)
-    y_offset = height - 150
+    y_offset = height - 200
     for line in lines:
-        draw.text((40, y_offset), line, fill='white', font=font_large)
-        y_offset += 38
+        draw.text((56, y_offset), line, fill='white', font=font_large)
+        y_offset += 72
 
-    # Watermark
-    draw.text((40, 30), 'NextGen News', fill=(255, 255, 255, 180), font=font_small)
+    draw.text((56, 42), 'NextGen News', fill=(255, 255, 255), font=font_brand)
+
+    img = img.filter(ImageFilter.UnsharpMask(radius=1.4, percent=120, threshold=2))
+    img = ImageEnhance.Contrast(img).enhance(1.06)
 
     buffer = BytesIO()
     img.save(buffer, format='JPEG', quality=95, optimize=True, progressive=True)

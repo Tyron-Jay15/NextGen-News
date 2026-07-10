@@ -66,6 +66,15 @@ mkdir -p logs media staticfiles
 python manage.py migrate
 python manage.py collectstatic --noinput
 python manage.py createsuperuser
+python manage.py seed_public_articles
+```
+
+`seed_public_articles` loads published sample stories with sharp hero images.
+Use this on **free accounts** where BBC/Panay scraping is blocked.
+
+If your plan allows outbound HTTP, you can also try live scraping:
+
+```bash
 python manage.py setup_scraper_sources
 python manage.py scrape_news
 ```
