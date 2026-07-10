@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Authentication
-LOGIN_URL = 'accounts:login'
+LOGIN_URL = 'accounts:admin_login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGOUT_REDIRECT_URL = 'news:home'
 

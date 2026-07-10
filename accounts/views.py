@@ -15,21 +15,34 @@ from accounts.models import User, UserProfile
 from config.utils import get_client_ip
 
 
-class UserLoginView(LoginView):
-    template_name = 'accounts/login.html'
+class StaffAdminLoginView(LoginView):
+    """Hidden staff portal at /accounts/admin/login/ — not linked from the public site."""
+
+    template_name = 'accounts/admin_login.html'
     authentication_form = LoginForm
     redirect_authenticated_user = True
 
     def form_valid(self, form):
+        user = form.get_user()
+        if not getattr(user, 'is_staff_member', False):
+            form.add_error(None, 'This portal is for staff and administrators only.')
+            return self.form_invalid(form)
+
         remember = form.cleaned_data.get('remember_me')
         if not remember:
             self.request.session.set_expiry(0)
         response = super().form_valid(form)
-        user = form.get_user()
         user.last_login_ip = get_client_ip(self.request)
         user.save(update_fields=['last_login_ip'])
         messages.success(self.request, 'Welcome back!')
         return response
+
+    def get_success_url(self):
+        return reverse_lazy('dashboard:home')
+
+
+# Keep old name as alias for any remaining imports/tests
+UserLoginView = StaffAdminLoginView
 
 
 class UserLogoutView(LogoutView):
@@ -40,7 +53,7 @@ class UserRegisterView(CreateView):
     model = User
     form_class = RegisterForm
     template_name = 'accounts/register.html'
-    success_url = reverse_lazy('accounts:login')
+    success_url = reverse_lazy('accounts:admin_login')
 
     def form_valid(self, form):
         response = super().form_valid(form)

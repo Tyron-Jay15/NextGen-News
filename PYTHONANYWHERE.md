@@ -128,8 +128,8 @@ cd ~/News && source venv/bin/activate && python manage.py refresh_article_images
 
 ## 6. Staff login
 
-- Site: `https://yourusername.pythonanywhere.com/`
-- Staff login: `/accounts/login/`
+- Public site: `https://yourusername.pythonanywhere.com/`
+- Staff portal (not linked on the public site): `/accounts/admin/login/`
 - Django admin: `/admin/`
 
 ## Notes

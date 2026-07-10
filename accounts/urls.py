@@ -1,12 +1,23 @@
 """Account URL patterns."""
 from django.urls import path
+from django.views.generic import RedirectView
 
 from accounts import views
 
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login/', views.UserLoginView.as_view(), name='login'),
+    path(
+        'admin/login/',
+        views.StaffAdminLoginView.as_view(),
+        name='admin_login',
+    ),
+    # Old public login URL redirects to the hidden staff portal
+    path(
+        'login/',
+        RedirectView.as_view(pattern_name='accounts:admin_login', permanent=False),
+        name='login',
+    ),
     path('logout/', views.UserLogoutView.as_view(), name='logout'),
     path('register/', views.UserRegisterView.as_view(), name='register'),
     path('profile/', views.profile_view, name='profile'),

@@ -49,6 +49,7 @@ Visit http://localhost:8000
 **Default credentials (after seed):**
 - Admin: `admin@nextgennews.com` / `Admin@12345`
 - Reporter: `reporter@nextgennews.com` / `Reporter@12345`
+- Staff portal (not linked on the public site): `/accounts/admin/login/`
 
 ### Docker Production
 

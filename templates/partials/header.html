@@ -4,10 +4,8 @@
             <span class="date-display"><i class="bi bi-calendar3"></i> {% now "l, F j, Y" %}</span>
             <div class="top-links">
                 {% if user.is_authenticated and user.is_staff_member %}
-                <a href="{% url 'dashboard:home' %}"><i class="bi bi-grid"></i> Staff</a>
+                <a href="{% url 'dashboard:home' %}"><i class="bi bi-grid"></i> Dashboard</a>
                 {% include 'partials/logout_form.html' with form_class='logout-form-inline' button_class='logout-link' %}
-                {% else %}
-                <a href="{% url 'accounts:login' %}" class="staff-login-link">Staff Login</a>
                 {% endif %}
             </div>
         </div>

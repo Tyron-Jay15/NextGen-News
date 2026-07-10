@@ -27,9 +27,14 @@ class UserModelTest(TestCase):
         self.assertTrue(user.can_edit_articles())
 
     def test_email_login_backend(self):
-        User.objects.create_user(username='login', email='login@test.com', password='Test@12345')
+        User.objects.create_user(
+            username='login',
+            email='login@test.com',
+            password='Test@12345',
+            is_staff=True,
+        )
         client = Client()
-        response = client.post(reverse('accounts:login'), {
+        response = client.post(reverse('accounts:admin_login'), {
             'username': 'login@test.com',
             'password': 'Test@12345',
         })
