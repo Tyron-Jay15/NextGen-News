@@ -71,14 +71,20 @@ class User(AbstractUser):
         return self.role_name in roles
 
     def can_edit_articles(self) -> bool:
+        if self.is_superuser or self.is_staff:
+            return True
         return self.role_name in (
             'super_admin', 'admin', 'chief_editor', 'editor', 'reporter', 'contributor'
         )
 
     def can_publish_articles(self) -> bool:
+        if self.is_superuser or self.is_staff:
+            return True
         return self.role_name in ('super_admin', 'admin', 'chief_editor')
 
     def can_moderate_comments(self) -> bool:
+        if self.is_superuser or self.is_staff:
+            return True
         return self.role_name in ('super_admin', 'admin', 'moderator', 'chief_editor', 'editor')
 
     @property

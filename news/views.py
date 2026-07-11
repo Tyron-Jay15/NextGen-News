@@ -134,7 +134,13 @@ class ArticleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('dashboard:articles')
 
     def test_func(self):
-        return self.request.user.can_edit_articles()
+        return self.request.user.is_authenticated and self.request.user.can_edit_articles()
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(self.request, 'You do not have permission to create articles.')
+            return redirect('dashboard:home')
+        return super().handle_no_permission()
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -153,7 +159,13 @@ class ArticleUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = 'news/article_form.html'
 
     def test_func(self):
-        return self.request.user.can_edit_articles()
+        return self.request.user.is_authenticated and self.request.user.can_edit_articles()
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            messages.error(self.request, 'You do not have permission to edit articles.')
+            return redirect('dashboard:home')
+        return super().handle_no_permission()
 
     def form_valid(self, form):
         article = form.save(commit=False)
